@@ -1,0 +1,60 @@
+apiVersion: v1
+kind: Service
+metadata:
+   name: springboot-prometheus
+   labels:
+      app: prometheus
+spec:
+  ports:
+    - nodePort: 30167
+      port: 8989    
+      targetPort: 8989  
+      protocol: TCP
+  selector:           
+    app: prometheus
+  type: NodePort    
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+   name: springboot-prometheus
+spec:
+  selector:         
+    matchLabels:
+      app: prometheus
+  replicas: 2  
+  template:
+    metadata:
+      labels:        
+        app: prometheus
+    spec:
+      containers:
+        - name: springboot-prometheus
+          image: chaitu465/spring-boot-prometheous
+          ports:
+            - containerPort: 8989
+          resources:
+            requests:
+              memory: '256Mi'
+              cpu: '500m'
+            limits:
+              memory: '512Mi'
+              cpu: '1'
+          readinessProbe:
+            httpGet:
+              path: /api/prometheous/sample
+              port: 8989
+            initialDelaySeconds: 20
+            periodSeconds: 15
+            failureThreshold: 6
+          livenessProbe:
+            httpGet:
+              path: /api/prometheous/sample
+              port: 8989
+            initialDelaySeconds: 120
+
+  
+    
+    
+  
